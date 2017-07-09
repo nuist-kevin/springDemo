@@ -1,18 +1,19 @@
 package com.focus.mic.test.entity;
 
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.time.LocalDate;
 
 /**
  * Created by caiwen on 2017/5/9.
  */
-@Entity
+@Entity(name = "USERS")
 public class User {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @NotNull
@@ -24,6 +25,8 @@ public class User {
     private String password;
 
     private int age;
+
+    private LocalDate birthday;
 
     public User() {
     }
@@ -64,5 +67,13 @@ public class User {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public LocalDate getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
     }
 }

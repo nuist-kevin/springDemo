@@ -1,33 +1,52 @@
 package com.focus.mic.test.config;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-/**
- * Created by caiwen on 2017/5/10.
- */
-
 @Configuration
+@PropertySource("classpath:db.properties")
 @EnableJpaRepositories(basePackages = "com.focus.mic.test.repository")
 public class JpaConfiguration {
+
+    @Value("${mysql.driverClassName}")
+    String driverClassName;
+    @Value("${mysql.url}")
+    String url;
+    @Value("${mysql.username}")
+    String userName;
+    @Value("${mysql.password}")
+    String passWord;
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer placeholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+
     @Bean
     public DataSource dataSource() {
         BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://localhost:3306/springdemo");
-        dataSource.setUsername("caiwen");
-        dataSource.setPassword("caiwen");
+        dataSource.setDriverClassName(driverClassName);
+        dataSource.setUrl(url);
+        dataSource.setUsername(userName);
+        dataSource.setPassword(passWord);
         return dataSource;
     }
-//
+
+//      hibernate 配置整合spring
 ////    @Bean
 ////    public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
 ////        LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
@@ -47,6 +66,7 @@ public class JpaConfiguration {
         hibernateJpaVendorAdapter.setDatabase(Database.MYSQL);
         hibernateJpaVendorAdapter.setGenerateDdl(false);
         hibernateJpaVendorAdapter.setDatabasePlatform("org.hibernate.dialect.MySQLDialect");
+        hibernateJpaVendorAdapter.setShowSql(true);
         return hibernateJpaVendorAdapter;
     }
 
@@ -58,5 +78,10 @@ public class JpaConfiguration {
         localContainerEntityManagerFactoryBean.setJpaVendorAdapter(jpaVendorAdapter);
         localContainerEntityManagerFactoryBean.setPackagesToScan("com.focus.mic.test.entity");
         return localContainerEntityManagerFactoryBean;
+    }
+
+    @Bean
+    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+        return new JpaTransactionManager(entityManagerFactory);
     }
 }

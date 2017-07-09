@@ -1,6 +1,7 @@
 package com.focus.mic.test.controller;
 
 import com.focus.mic.test.entity.User;
+import com.focus.mic.test.repository.UserJpaRepository;
 import com.focus.mic.test.repository.UserRepository;
 import org.junit.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,7 +29,7 @@ public class UserControllerTest {
             expectedUsers.add(new User("caiwen" + i, "6886377" + "-" + i, i));
         }
 
-        UserRepository mockUserRepository = mock(UserRepository.class);
+        UserJpaRepository mockUserRepository = mock(UserJpaRepository.class);
         when(mockUserRepository.findAll()).thenReturn(expectedUsers);
 
         UserController controller = new UserController(mockUserRepository);
@@ -47,7 +48,7 @@ public class UserControllerTest {
     @Test
     public void shouldShowSpecificUser() throws Exception {
         User user = new User("caiwen", "12345", 32);
-        UserRepository mockUserRepository = mock(UserRepository.class);
+        UserJpaRepository mockUserRepository = mock(UserJpaRepository.class);
         when(mockUserRepository.findOne(12345)).thenReturn(user);
 
         UserController controller = new UserController(mockUserRepository);
@@ -67,7 +68,7 @@ public class UserControllerTest {
         User savedUser = new User("caiwen", "123456", 32);
         savedUser.setId(123456);
 
-        UserRepository mockUserRepository = mock(UserRepository.class);
+        UserJpaRepository mockUserRepository = mock(UserJpaRepository.class);
         when(mockUserRepository.save(user))
                 .thenReturn(user);
 
