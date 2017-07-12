@@ -6,12 +6,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
-import javax.sql.DataSource;
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.commons.dbcp2.DataSourceConnectionFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
 public class DBUtil {
 

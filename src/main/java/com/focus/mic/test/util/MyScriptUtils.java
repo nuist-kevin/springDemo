@@ -1,12 +1,17 @@
 package com.focus.mic.test.util;
 
+import com.focus.mic.test.util.SqlScriptInfo.SQLTYPE;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.Writer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,11 +35,28 @@ public class MyScriptUtils extends ScriptUtils {
 
   public static final String CREATE_OR_REPLACE = "CREATE OR REPLACE";
   public static final String PROCEDURE_END = "END";
+  // 默认情况下，DDL需要在本地和美国两个点执行
+  public static boolean BOTH_USA_AND_LOCAL = true;
 
   private static final Log logger = LogFactory.getLog(MyScriptUtils.class);
 
-  public static void executeScripts( Connection connection, LinkedList<Path> scriptList) {
-    for (Path script: scriptList) {
+  public static void executeSqlScriptsFromDirectory(String directory)
+      throws IOException, SQLException {
+    Map<SqlScriptInfo, LinkedList<Path>> connectionLinkedListMap = propareExecutionEnv(directory);
+    for (SqlScriptInfo sqlScriptInfo : connectionLinkedListMap.keySet()) {
+      try (Connection connection = DBUtil.getConnectionForSchema(sqlScriptInfo.getSchema())) {
+        executeScripts(connection, connectionLinkedListMap.get(sqlScriptInfo));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    // 删除临时创建的文件
+    FileUtils.deleteFilesWithSuffix(directory, "usa");
+  }
+
+
+  public static void executeScripts(Connection connection, LinkedList<Path> scriptList) {
+    for (Path script : scriptList) {
       executeScript(connection, script);
     }
   }
@@ -90,6 +112,9 @@ public class MyScriptUtils extends ScriptUtils {
       StringBuilder stringBuilder = new StringBuilder();
       for (int i = 0; i < statements.size(); i++) {
         String statement = statements.get(i);
+        if (statement.trim().toLowerCase().contains("set define off")) {
+          continue;
+        }
         if (statement.toUpperCase().startsWith(CREATE_OR_REPLACE)) {
           stringBuilder = new StringBuilder();
           stringBuilder.append(statement).append(";");
@@ -241,14 +266,84 @@ public class MyScriptUtils extends ScriptUtils {
     }
   }
 
-  public static void executeSqlScriptsFromDirectory(String directory)
+
+  /*
+    *   SQL脚本路径样式：
+    *       /xxx/version/CB/DDL/caiwen/01.alter_sequence.sql
+    *       /xxx/version/CB/DML/caiwen/02.update_ddd.sql
+    * */
+  public static LinkedHashMap<SqlScriptInfo, LinkedList<Path>> propareExecutionEnv(
+      String directoryPath)
       throws IOException, SQLException {
-    Map<Connection, LinkedList<Path>> connectionLinkedListMap = FileUtils.propareExecutionEnv(directory);
-    for (Connection connection: connectionLinkedListMap.keySet()) {
-      executeScripts(connection, connectionLinkedListMap.get(connection));
+    LinkedHashMap<SqlScriptInfo, LinkedList<Path>> connectionLinkedListMap = new LinkedHashMap<>();
+
+    File versionDir = new File(directoryPath);
+    for (File schemaDir : versionDir.listFiles()) {
+      System.out.println(schemaDir.getName());
+      for (File sqlTypeDir : schemaDir.listFiles()) {
+        for (File userDir : sqlTypeDir.listFiles()) {
+          LinkedList<Path> localScriptList = new LinkedList<>();
+          LinkedList<Path> usaScriptList = new LinkedList<>();
+          // 遍历当前文件夹
+          Files.walkFileTree(Paths.get(userDir.getPath()), new SimpleFileVisitor<Path>() {
+            int localIndex = 0;
+            int usaIndex = 0;
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+              // readme 文件忽略， 非 .sql 结尾的也忽略
+              String fileName = file.getFileName().toString().toLowerCase();
+              if (!fileName.contains("readme") && fileName.endsWith("sql")) {
+                // 如果是DDL，则要执行两个点
+                if ("CB".equals(schemaDir.getName()) && "DDL".equals(sqlTypeDir.getName())
+                    && BOTH_USA_AND_LOCAL) {
+                  // 如果是sequence文件，替换 sequence 中的起始值为2
+                  if (file.getFileName().toString().toLowerCase().contains("alter_sequence")) {
+                    File usaSequenceFile = generateUsaSequenceScript(file.toFile());
+                    usaScriptList.add(usaIndex, usaSequenceFile.toPath());
+                  } else {
+                    usaScriptList.add(usaIndex, file);
+                  }
+                  usaIndex += 1;
+                }
+                // 添加本地点需要执行的脚本
+                localScriptList.add(localIndex, file);
+                localIndex += 1;
+              }
+              return FileVisitResult.CONTINUE;
+            }
+          });
+          connectionLinkedListMap
+              .put(new SqlScriptInfo(schemaDir.getName(), SQLTYPE.valueOf(sqlTypeDir.getName())),
+                  localScriptList);
+          if (BOTH_USA_AND_LOCAL) {
+            connectionLinkedListMap.put(new SqlScriptInfo("CBUSA", SQLTYPE.DDL), usaScriptList);
+          }
+        }
+      }
     }
+    return connectionLinkedListMap;
 
-    FileUtils.deleteFilesWithSuffix(directory, "usa");
+  }
 
+  public static File generateUsaSequenceScript(File file) throws IOException {
+    File usaSequenceSql = new File(file.getAbsolutePath() + "-usa");
+    LineNumberReader reader = new LineNumberReader(new FileReader(file));
+    try (Writer writer = new FileWriter(usaSequenceSql)) {
+      String currentLine = reader.readLine();
+      while (currentLine != null) {
+        String newLine = currentLine;
+        if (currentLine.toLowerCase().contains("minvalue 1")) {
+          newLine = currentLine.replace("minvalue 1", "minvalue 2");
+        }
+        if (currentLine.toLowerCase().contains("start with 1")) {
+          newLine = currentLine.replace("start with 1", "start with 2");
+        }
+        writer.write(newLine + "\n");
+        currentLine = reader.readLine();
+      }
+    }
+    return usaSequenceSql;
   }
 }

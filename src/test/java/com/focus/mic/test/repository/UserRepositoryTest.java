@@ -2,6 +2,8 @@ package com.focus.mic.test.repository;
 
 import com.focus.mic.test.config.JpaConfiguration;
 import com.focus.mic.test.entity.User;
+import com.focus.mic.test.util.MyScriptUtils;
+import java.sql.DriverManager;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,9 +80,6 @@ public class UserRepositoryTest {
 
     }
 
-    @Test
-    public void testScript() {
-        org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript();
-    }
+
 
 }
