@@ -54,7 +54,6 @@ public class UserRepositoryTest {
     }
 
     @Test
-    @Sql
     @Transactional
     public void testQueryBySpec() {
         LocalDate fromDate = LocalDate.of(1980, 1, 1);
