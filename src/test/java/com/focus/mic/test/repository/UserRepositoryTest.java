@@ -58,22 +58,19 @@ public class UserRepositoryTest {
     public void testQueryBySpec() {
         LocalDate fromDate = LocalDate.of(1980, 1, 1);
         LocalDate toDate = LocalDate.of(1989, 12, 31);
-        List<User> users =userRepository.findAll(new Specification() {
-            @Override
-            public Predicate toPredicate(Root root, CriteriaQuery query, CriteriaBuilder cb) {
-                Predicate condition = cb.between(root.get("birthday"), fromDate, toDate);
-                Predicate con = cb.like(root.get("username"), "%wen");
-                /*
-                List<Predicate> predicateList = new ArrayList<>();
-                predicateList.add(condition);
-                predicateList.add(con);
-                Predicate[] predicates = new Predicate[predicateList.size()];
-                return cb.and(predicateList.toArray(predicates));
-                  */
-                query.where(cb.and(con, condition));
+        List<User> users =userRepository.findAll((root, query, cb) -> {
+            Predicate condition = cb.between(root.get("birthday"), fromDate, toDate);
+            Predicate con = cb.like(root.get("username"), "%wen");
+            /*
+            List<Predicate> predicateList = new ArrayList<>();
+            predicateList.add(condition);
+            predicateList.add(con);
+            Predicate[] predicates = new Predicate[predicateList.size()];
+            return cb.and(predicateList.toArray(predicates));
+              */
+            query.where(cb.and(con, condition));
 
-                return query.getRestriction();
-            }
+            return query.getRestriction();
         });
         System.out.println(users.get(0).getUsername());
 
