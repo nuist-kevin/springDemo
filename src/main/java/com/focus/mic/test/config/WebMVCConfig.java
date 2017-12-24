@@ -103,6 +103,7 @@ public class WebMVCConfig extends WebMvcConfigurerAdapter implements Application
     // Thymeleaf 配置 -- end --
 
 
+    @Override
     public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
         configurer.enable();
     }
