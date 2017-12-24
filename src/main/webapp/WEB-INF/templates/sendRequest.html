@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gentelella Alela! | </title>
+    <!-- Bootstrap -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/custom.min.css" rel="stylesheet">
+    <link href="/css/font-awesome.min.css" rel="stylesheet">
+
+</head>
+
+<body class="nav-md">
+
+<div class="container body">
+
+    <!-- page content -->
+    <div class="main_container">
+        <div role="main" style="min-height: 1036px;">
+            <div class="">
+                <div class="page-title">
+                    <div class="title_left">
+                        <h3><i class="fa fa-envelope-o"></i> FIE中信银行对接接口调试</h3>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>发送消息</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                <form class="form-horizontal form-label-left" novalidate="">
+
+                                    <div class="item form-group">
+                                        <label class="control-label col-md-2 col-sm-2 col-xs-12" for="url">URL <span
+                                                class="required">*</span>
+                                        </label>
+                                        <div class="col-md-10 col-sm-10 col-xs-12">
+                                            <input id="url" class="form-control col-md-7 col-xs-12"
+                                                   name="url"
+                                                   required="required" type="text">
+                                        </div>
+                                    </div>
+
+                                    <div class="item form-group">
+                                        <label class="control-label col-md-2 col-sm-2 col-xs-12" for="request">消息内容
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="col-md-10 col-sm-10 col-xs-12">
+                                            <textarea id="request" required="required" name="request" rows="30"
+                                                      cols="30"
+                                                      class="form-control col-md-7 col-xs-12"></textarea>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <div class="item form-group">
+                                        <div class="col-lg-offset-5 col-md-offset-4">
+                                            <a class="btn-success btn">SEND</a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>响应结果</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div id="content" class="x_content">
+                                <pre>"kjaslkdjfasdf
+                                ljasldfjalsdjkf
+                                alsdjflaskjdf;ald
+                                    ljasl;dfjaoiwejrtlj"</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- /page content -->
+    </div>
+</div>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+<!-- Bootstrap -->
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/custom.min.js"></script>
+<!--<script src="/js/nprogress.js"></script>-->
+<!--<script src="/js/fastclick.js"></script>-->
+<script>
+    $(document).ready(function () {
+        $("a").on("click", function () {
+                $.post(
+                    "/CBEC/payInfo.do",
+                    $("form").serialize(),
+                    function (data) {
+                        $("pre").text(data);
+                    })
+            }
+        );
+    });
+
+</script>
+
+</body>
+</html>
